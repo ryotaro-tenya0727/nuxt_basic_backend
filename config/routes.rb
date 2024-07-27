@@ -1,5 +1,7 @@
 Rails.application.routes.draw do
-  resources :posts
+  scope format: 'json' do # json形式のリクエストに対応
+    resources :posts
+  end
   mount_devise_token_auth_for 'User', at: 'auth'
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 

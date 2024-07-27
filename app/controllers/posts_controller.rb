@@ -16,8 +16,8 @@ class PostsController < ApplicationController
   # POST /posts.json
   def create
     @post = Post.new(post_params)
-
     if @post.save
+      attach_image
       render :show, status: :created
     else
       render json: @post.errors, status: :unprocessable_entity
@@ -41,6 +41,19 @@ class PostsController < ApplicationController
   end
 
   private
+  def attach_image
+    return if params[:image].blank?
+    base64_data = params[:image].split(',').last
+    mime_type = params[:image].split(',').first.split(';').first.split(':').last
+    extension = Rack::Mime::MIME_TYPES.invert[mime_type]
+    filename = [SecureRandom.uuid, extension].join
+
+    @post.image.attach(
+      io: StringIO.new(base64_data),
+      filename: filename,
+      content_type: mime_type
+    )
+  end
     # Use callbacks to share common setup or constraints between actions.
     def set_post
       @post = Post.find(params[:id])
@@ -48,6 +61,6 @@ class PostsController < ApplicationController
 
     # Only allow a list of trusted parameters through.
     def post_params
-      params.require(:post).permit(:title, :body).merge(user: current_user)
+      params.permit(:title, :body).merge(user: current_user)
     end
 end
